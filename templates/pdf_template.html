@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }} – Flashcards</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #222; margin: 0; padding: 20px; }
+        h1 { color: #8e44ad; margin-bottom: 4px; }
+        .meta { color: #666; font-size: 0.85rem; margin-bottom: 30px; }
+        .section-title { font-size: 1.1rem; font-weight: 700; color: #8e44ad; margin: 24px 0 10px; border-bottom: 2px solid #8e44ad; padding-bottom: 4px; }
+        .card { background: #f9f4fc; border-left: 4px solid #8e44ad; border-radius: 6px; padding: 14px 18px; margin-bottom: 12px; page-break-inside: avoid; }
+        .card .question { font-weight: 600; margin-bottom: 6px; }
+        .card .answer { color: #444; }
+        .badge { display: inline-block; font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; margin-left: 8px; font-weight: 500; }
+        .easy   { background: #d5f5e3; color: #1e8449; }
+        .medium { background: #fdebd0; color: #b7600a; }
+        .hard   { background: #fad7d7; color: #922b21; }
+        .footer { margin-top: 40px; color: #aaa; font-size: 0.78rem; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <div class="meta">Generated on {{ created[:10] }} · AI Flashcard Generator</div>
+
+    {% if cards.main %}
+        <div class="section-title">📋 Q&amp;A Cards</div>
+        {% for card in cards.main %}
+        <div class="card">
+            <div class="question">{{ card.question }} <span class="badge {{ card.difficulty | default('medium') }}">{{ card.difficulty | default('medium') }}</span></div>
+            <div class="answer">{{ card.answer }}</div>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if cards.definitions %}
+        <div class="section-title">📖 Definitions</div>
+        {% for card in cards.definitions %}
+        <div class="card">
+            <div class="question">{{ card.question }}</div>
+            <div class="answer">{{ card.answer }}</div>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if cards.cloze %}
+        <div class="section-title">✏️ Fill in the Blank</div>
+        {% for card in cards.cloze %}
+        <div class="card">
+            <div class="question">{{ card.question }}</div>
+            <div class="answer">Answer: <strong>{{ card.answer }}</strong></div>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="footer">AI Flashcard Generator · Study smarter, not harder</div>
+</body>
+</html>

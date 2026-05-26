@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ deck.title }} – AI Flashcard Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <header style="text-align:center;padding:30px 0 20px">
+        <h1>{{ deck.title }}</h1>
+        <p style="color:var(--text-muted)">{{ deck.total_cards }} cards &nbsp;·&nbsp; Created {{ deck.created_at.strftime('%B %d, %Y') }}</p>
+        <a href="{{ url_for('my_decks') }}" class="btn-secondary" style="display:inline-block;margin-top:12px;text-decoration:none">← Back to Decks</a>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card-large"><div class="label">Total Sessions</div><div class="value">{{ total_sessions }}</div></div>
+        <div class="stat-card-large"><div class="label">Cards Studied</div><div class="value">{{ total_cards_studied }}</div></div>
+        <div class="stat-card-large"><div class="label">Average Accuracy</div><div class="value">{{ average_accuracy }}%</div></div>
+    </div>
+
+    <div style="text-align:center;margin:30px 0">
+        <a href="{{ url_for('load_deck', deck_id=deck.id) }}" class="btn-primary" style="font-size:1.1rem;padding:14px 32px;text-decoration:none">📚 Start Studying</a>
+    </div>
+
+    <div style="background:var(--card-bg);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)">
+        <h2 style="margin-bottom:16px">Card Preview</h2>
+        {% set cards = deck.get_cards() %}
+        {% if cards.main %}
+            <div class="preview-cards">
+                {% for card in cards.main[:5] %}
+                <div class="preview-card">
+                    <strong>Q:</strong> {{ card.question }}<br>
+                    <strong>A:</strong> {{ card.answer }}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color:var(--text-muted)">No preview available.</p>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>

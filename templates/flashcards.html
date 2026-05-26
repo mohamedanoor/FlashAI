@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Mode – FlashAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=7">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="study-wrapper">
+
+    <header class="study-header">
+        <a href="{{ url_for('index') }}" class="back-link">← Exit</a>
+        <div class="study-title" id="study-deck-title">Study Session</div>
+        <div class="study-progress-text" id="progress-text">Card 0 / 0</div>
+    </header>
+
+    <div class="mode-switcher">
+        <button class="mode-btn active" onclick="setMode('flashcard')" id="mode-flashcard">🃏 Flashcard</button>
+        <button class="mode-btn" onclick="setMode('quiz')" id="mode-quiz">🎯 Quiz</button>
+        <button class="mode-btn" onclick="setMode('written')" id="mode-written">✍️ Written</button>
+    </div>
+
+    <div class="study-progress-bar">
+        <div class="study-progress-fill" id="study-progress-fill" style="width:0%"></div>
+    </div>
+
+    <!-- Flashcard Mode -->
+    <div id="flashcard-mode" class="study-mode active">
+        <div class="card-scene" onclick="flipCard()">
+            <div class="study-card" id="study-card">
+                <div class="card-face card-front">
+                    <div class="card-content" id="card-front-content">Loading...</div>
+                    <div class="flip-hint">Click to reveal answer</div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="card-content" id="card-back-content"></div>
+                    <div class="flip-hint">Click to flip back</div>
+                </div>
+            </div>
+        </div>
+        <div class="card-controls" id="flashcard-controls">
+            <button class="ctrl-btn hard-btn" onclick="rateCard('hard')" style="display:none">😓 Hard</button>
+            <button class="ctrl-btn easy-btn" onclick="rateCard('easy')" style="display:none">😊 Easy</button>
+        </div>
+        <div class="nav-controls">
+            <button class="nav-btn" onclick="prevCard()">← Prev</button>
+            <button class="nav-btn" onclick="nextCard()">Next →</button>
+        </div>
+    </div>
+
+    <!-- Quiz Mode -->
+    <div id="quiz-mode" class="study-mode hidden">
+        <div class="quiz-card">
+            <div class="quiz-question" id="quiz-question"></div>
+            <div class="quiz-options" id="quiz-options"></div>
+            <div class="quiz-feedback hidden" id="quiz-feedback"></div>
+            <div style="text-align:center;margin-top:16px">
+                <button class="generate-btn" onclick="nextQuizCard()" id="quiz-next-btn" style="display:none;max-width:240px;margin:0 auto">Next Question →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Written Mode -->
+    <div id="written-mode" class="study-mode hidden">
+        <div class="written-card">
+            <div class="quiz-question" id="written-question"></div>
+            <textarea id="written-answer" class="written-input" placeholder="Type your answer here..."></textarea>
+            <div class="written-actions">
+                <button class="generate-btn" onclick="checkWrittenAnswer()" style="max-width:240px">Check Answer</button>
+            </div>
+            <div class="written-feedback hidden" id="written-feedback"></div>
+            <div style="text-align:center;margin-top:12px">
+                <button class="btn-secondary" onclick="nextWrittenCard()" id="written-next-btn" style="display:none">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Complete -->
+    <div id="session-complete" class="session-complete hidden">
+        <div class="complete-card">
+            <span class="complete-icon">🎉</span>
+            <h2>Session Complete!</h2>
+            <div class="complete-stats" id="complete-stats"></div>
+            <div class="complete-actions">
+                <button onclick="restartSession()" class="btn-primary">Study Again</button>
+                <a href="{{ url_for('my_decks') if current_user.is_authenticated else url_for('index') }}" class="btn-secondary">
+                    {{ 'My Decks' if current_user.is_authenticated else 'Home' }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% if deck %}
+<script id="preloaded-deck" type="application/json">
+{"title": {{ deck.title | tojson }}, "cards": {{ deck.get_cards() | tojson }}}
+</script>
+{% endif %}
+<!-- prettier-ignore -->
+<script>
+        // @ts-nocheck
+    const SESSION_ID = {% if session_id is defined and session_id %}{{ session_id }}{% else %}null{% endif %};
+</script>
+
+<script src="{{ url_for('static', filename='js/main.js') }}?v=7"></script>
+</body>
+</html>

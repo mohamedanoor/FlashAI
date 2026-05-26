@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In – FlashAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=7">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <span class="auth-logo">🧠</span>
+        <h1>Welcome Back</h1>
+        <p class="auth-subtitle">Log in to access your flashcard decks</p>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for msg in messages %}<div class="flash-msg">{{ msg }}</div>{% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+            </div>
+            <button type="submit" class="auth-btn">Log In →</button>
+        </form>
+
+        <p class="auth-switch">Don't have an account? <a href="{{ url_for('signup') }}">Sign up free</a></p>
+        <a href="{{ url_for('index') }}" class="auth-back">← Back to Home</a>
+    </div>
+</div>
+</body>
+</html>

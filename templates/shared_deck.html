@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ deck.title }} – Shared Deck</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <header style="text-align:center;padding:30px 0 20px">
+        <h1>📤 {{ deck.title }}</h1>
+        <p style="color:var(--text-muted)">Shared by {{ deck.owner.username }} &nbsp;·&nbsp; {{ deck.total_cards }} cards</p>
+    </header>
+
+    <div style="text-align:center;background:var(--card-bg);border-radius:var(--radius);padding:30px;margin-bottom:24px;box-shadow:var(--shadow)">
+        <h2>Study This Deck</h2>
+        <p style="color:var(--text-muted);margin:10px 0 20px">Sign in to save a copy and track your progress.</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('load_deck', deck_id=deck.id) }}" class="btn-primary" style="text-decoration:none">Study Now</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn-primary" style="text-decoration:none">Log In to Study</a>
+                <a href="{{ url_for('signup') }}" class="btn-secondary" style="text-decoration:none">Create Account</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="background:var(--card-bg);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)">
+        <h2 style="margin-bottom:16px">Preview</h2>
+        {% set cards = deck.get_cards() %}
+        {% if cards.main %}
+            <div class="preview-cards">
+                {% for card in cards.main[:10] %}
+                <div class="preview-card">
+                    <strong>Q:</strong> {{ card.question }}<br>
+                    <strong>A:</strong> {{ card.answer }}
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>

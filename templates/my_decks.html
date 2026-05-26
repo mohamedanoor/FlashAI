@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Decks – FlashAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=7">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="main-header">
+    <div class="header-inner">
+        <a href="/" class="logo"><span class="logo-icon">🧠</span> FlashAI</a>
+        <nav class="header-nav">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('analytics') }}">Analytics</a>
+            <a href="{{ url_for('logout') }}" class="btn-outline">Log Out</a>
+        </nav>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="page-header">
+        <h1>📚 My Decks</h1>
+        <p>Manage and study your flashcard collections</p>
+        <div class="page-header-actions">
+            <a href="{{ url_for('index') }}" class="btn-primary" style="text-decoration:none">+ Create New Deck</a>
+            <a href="{{ url_for('analytics') }}" class="btn-secondary" style="text-decoration:none">📊 Analytics</a>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for msg in messages %}<div class="flash-msg">{{ msg }}</div>{% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="stats-overview">
+        <div class="overview-card">
+            <div class="label">Total Decks</div>
+            <div class="value">{{ total_decks }}</div>
+        </div>
+        <div class="overview-card">
+            <div class="label">Total Cards</div>
+            <div class="value">{{ total_cards }}</div>
+        </div>
+        <div class="overview-card">
+            <div class="label">Study Sessions</div>
+            <div class="value">{{ recent_sessions | length }}</div>
+        </div>
+    </div>
+
+    <div class="search-filter-bar">
+        <form action="{{ url_for('my_decks') }}" method="get" style="display:flex;gap:12px;flex:1;flex-wrap:wrap;align-items:center">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="🔍 Search decks..." class="search-input">
+            <select name="sort" class="sort-select" onchange="this.form.submit()">
+                <option value="recent" {{ 'selected' if sort_by=='recent' }}>Most Recent</option>
+                <option value="title"  {{ 'selected' if sort_by=='title'  }}>Title A–Z</option>
+                <option value="cards"  {{ 'selected' if sort_by=='cards'  }}>Most Cards</option>
+            </select>
+            <button type="submit" class="btn-primary">Search</button>
+        </form>
+    </div>
+
+    <div class="decks-container">
+        {% if decks %}
+            {% for deck in decks %}
+            <div class="deck-card">
+                <div class="deck-info">
+                    <h3>{{ deck.title }}</h3>
+                    <div class="deck-meta">
+                        <strong>{{ deck.total_cards }}</strong> cards &nbsp;·&nbsp;
+                        Created {{ deck.created_at.strftime('%b %d, %Y') }}
+                        {% if deck.last_studied %}&nbsp;·&nbsp; Last studied {{ deck.last_studied.strftime('%b %d') }}{% endif %}
+                        &nbsp;·&nbsp; {{ deck.model_used }}
+                    </div>
+                </div>
+                <div class="deck-actions-extended">
+                    <a href="{{ url_for('load_deck', deck_id=deck.id) }}" class="deck-btn load-btn">▶ Study</a>
+                    <a href="{{ url_for('view_deck', deck_id=deck.id) }}" class="deck-btn" style="background:var(--grad-cyan);color:white">View</a>
+                    <button onclick="shareDeck({{ deck.id }})" class="deck-btn share-btn">Share</button>
+                    <a href="{{ url_for('download_deck', deck_id=deck.id) }}" class="deck-btn download-btn">PDF</a>
+                    <a href="{{ url_for('export_anki', deck_id=deck.id) }}" class="deck-btn export-btn">Anki</a>
+                    <form action="{{ url_for('delete_deck', deck_id=deck.id) }}" method="post" style="display:inline">
+                        <button type="submit" class="deck-btn delete-btn" onclick="return confirm('Delete this deck?')">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div style="font-size:3rem;margin-bottom:14px">📭</div>
+                <h3>No decks yet</h3>
+                <p>{% if search_query %}No decks match "{{ search_query }}".{% else %}Generate and save some flashcards to get started!{% endif %}</p>
+                <a href="{{ url_for('index') }}" class="create-deck-btn">Create Your First Deck</a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Share Modal -->
+<div id="shareModal" style="display:none;position:fixed;inset:0;background:rgba(10,10,15,0.5);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center">
+    <div style="background:white;padding:36px;border-radius:20px;max-width:500px;width:90%;border:2px solid var(--border-soft)">
+        <h2 style="font-family:var(--font-display);font-weight:800;margin-bottom:12px">🔗 Share Deck</h2>
+        <p style="color:var(--text-muted);margin-bottom:18px;font-size:0.9rem">Anyone with this link can view and study this deck:</p>
+        <div style="display:flex;gap:10px;margin-bottom:20px">
+            <input type="text" id="shareUrl" readonly style="flex:1;padding:11px 14px;border:2px solid var(--border);border-radius:10px;font-family:var(--font-body);font-size:0.88rem">
+            <button onclick="copyShareUrl()" class="btn-primary">Copy</button>
+        </div>
+        <button onclick="closeShareModal()" class="btn-outline-sm" style="width:100%">Close</button>
+    </div>
+</div>
+
+<script>
+function shareDeck(deckId) {
+    fetch(`/share_deck/${deckId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('shareUrl').value = data.share_url;
+                document.getElementById('shareModal').style.display = 'flex';
+            } else { alert('Error: ' + (data.error || 'Unknown')); }
+        });
+}
+function closeShareModal() { document.getElementById('shareModal').style.display = 'none'; }
+function copyShareUrl() {
+    const input = document.getElementById('shareUrl');
+    input.select();
+    navigator.clipboard.writeText(input.value).then(() => {
+        alert('Link copied to clipboard!');
+    }).catch(() => {
+        document.execCommand('copy');
+        alert('Link copied!');
+    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlashAI – AI Flashcard Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=7">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="page-wrapper">
+
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-inner">
+            <a href="/" class="logo">
+                <span class="logo-icon">🧠</span> FlashAI
+            </a>
+            <nav class="header-nav">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('my_decks') }}">My Decks</a>
+                    <a href="{{ url_for('analytics') }}">Analytics</a>
+                    <a href="{{ url_for('logout') }}" class="btn-outline">Log Out</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Log In</a>
+                    <a href="{{ url_for('signup') }}" class="btn-primary-sm">Sign Up</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-badge">✨ Powered by Claude AI</div>
+        <h1>Turn Any Text Into<br><span class="gradient-text">Smart Flashcards</span></h1>
+        <p class="hero-sub">Paste notes, enter a topic, or upload a file. Get a full study deck in seconds.</p>
+        <div class="hero-stats">
+    <div class="hero-stat"><div class="num">3</div><div class="lbl">Study Modes</div></div>
+    <div class="hero-stat"><div class="num">∞</div><div class="lbl">Topics</div></div>
+    <div class="hero-stat"><div class="num">3</div><div class="lbl">Card Types</div></div>
+</div>
+    </section>
+
+    <!-- Main Card -->
+    <main class="main-card">
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for msg in messages %}<div class="flash-msg">{{ msg }}</div>{% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Tabs -->
+        <div class="tabs" role="tablist">
+            <button class="tab active" id="text-selector" onclick="switchTab('text')" role="tab">📝 Paste Text</button>
+            <button class="tab" id="topic-selector" onclick="switchTab('topic')" role="tab">💡 Topic</button>
+            <button class="tab" id="file-selector" onclick="switchTab('file')" role="tab">📎 Upload File</button>
+        </div>
+
+        <!-- Text Input -->
+        <div id="text-input-container" class="tab-panel active">
+            <form id="flashcard-form">
+                <div class="form-group">
+                    <label for="text_input">Your notes or study material</label>
+                    <textarea id="text_input" name="text_input" rows="8"
+                        placeholder="Paste lecture notes, textbook passages, or any study material here (min 50 characters)..."></textarea>
+                    <span class="char-count" id="text-char-count">0 characters</span>
+                </div>
+                <div class="options-row">
+                    <div class="form-group half">
+                        <label for="text-difficulty">Difficulty</label>
+                        <select id="text-difficulty" name="difficulty">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label for="text-model">Model</label>
+                        <select id="text-model" name="model">
+                            <option value="claude-sonnet-4-5" selected>Claude Sonnet (Best Balance)</option>
+                            <option value="claude-opus-4-5">Claude Opus (Highest Quality)</option>
+                            <option value="claude-haiku-4-5">Claude Haiku (Fastest)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="advanced-toggle" onclick="toggleAdvanced('text-advanced')">⚙️ Advanced Options</div>
+                <div id="text-advanced" class="advanced-options hidden">
+                    <label class="checkbox-label"><input type="checkbox" name="question_answer" value="true" checked> Q&A Cards</label>
+                    <label class="checkbox-label"><input type="checkbox" name="extract_definitions" value="true" checked> Definition Cards</label>
+                    <label class="checkbox-label"><input type="checkbox" name="create_cloze" value="true" checked> Fill-in-the-Blank</label>
+                </div>
+                <button type="submit" class="generate-btn" id="text-submit-btn">✨ Generate Flashcards</button>
+            </form>
+        </div>
+
+        <!-- Topic Input -->
+        <div id="topic-input-container" class="tab-panel hidden">
+            <form id="topic-form">
+                <div class="form-group">
+                    <label for="topic_input">Topic to study</label>
+                    <input type="text" id="topic_input" name="topic_input"
+                        placeholder="e.g. French Revolution, Photosynthesis, Machine Learning basics...">
+                </div>
+                <div class="options-row">
+                    <div class="form-group half">
+                        <label for="topic-difficulty">Difficulty</label>
+                        <select id="topic-difficulty" name="difficulty">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label for="topic-model">Model</label>
+                        <select id="topic-model" name="model">
+                            <option value="claude-sonnet-4-5" selected>Claude Sonnet (Best Balance)</option>
+                            <option value="claude-opus-4-5">Claude Opus (Highest Quality)</option>
+                            <option value="claude-haiku-4-5">Claude Haiku (Fastest)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="advanced-toggle" onclick="toggleAdvanced('topic-advanced')">⚙️ Advanced Options</div>
+                <div id="topic-advanced" class="advanced-options hidden">
+                    <label class="checkbox-label"><input type="checkbox" name="include_definitions" value="true" checked> Include Definitions</label>
+                    <label class="checkbox-label"><input type="checkbox" name="include_facts" value="true" checked> Include Key Facts</label>
+                    <label class="checkbox-label"><input type="checkbox" name="include_dates" value="true"> Include Dates & Events</label>
+                </div>
+                <button type="submit" class="generate-btn" id="topic-submit-btn">✨ Generate Flashcards</button>
+            </form>
+        </div>
+
+        <!-- File Upload -->
+        <div id="file-input-container" class="tab-panel hidden">
+            <form id="file-form" enctype="multipart/form-data">
+                <div class="drop-zone" id="drop-zone">
+                    <div class="drop-zone-icon">📄</div>
+                    <p>Drag & drop files here, or <label for="file_input" class="file-link">browse</label></p>
+                    <p class="drop-hint">Supports PDF, DOCX, TXT · Max 16MB</p>
+                    <input type="file" id="file_input" name="files" multiple accept=".pdf,.docx,.doc,.txt" style="display:none">
+                    <div id="file-list" class="file-list"></div>
+                </div>
+                <div class="options-row" style="margin-top:20px">
+                    <div class="form-group half">
+                        <label for="file-difficulty">Difficulty</label>
+                        <select id="file-difficulty" name="difficulty">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label for="file-model">Model</label>
+                        <select id="file-model" name="model">
+                            <option value="claude-sonnet-4-5" selected>Claude Sonnet (Best Balance)</option>
+                            <option value="claude-opus-4-5">Claude Opus (Highest Quality)</option>
+                            <option value="claude-haiku-4-5">Claude Haiku (Fastest)</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="generate-btn" id="file-submit-btn">✨ Generate Flashcards</button>
+            </form>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading-section" class="loading-section hidden">
+            <div class="spinner"></div>
+            <p id="loading-text" style="color:var(--text-muted);font-weight:500">Generating your flashcards...</p>
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        </div>
+
+        <!-- Results -->
+        <div id="results-section" class="results-section hidden">
+            <div class="results-header">
+                <h2>Your Flashcards</h2>
+                <div class="results-actions">
+                    <button onclick="studyNow()" class="btn-primary">📚 Study Now</button>
+                    {% if current_user.is_authenticated %}
+                        <button onclick="saveDeck()" class="btn-secondary">💾 Save Deck</button>
+                    {% endif %}
+                    <button onclick="downloadDeck(currentDeck)" class="btn-secondary">⬇ PDF</button>
+                    <button onclick="resetForm()" class="btn-outline-sm">↩ New</button>
+                </div>
+            </div>
+
+            <div class="card-type-tabs">
+                <button class="card-type-tab active" onclick="showCardType('main')">Q&A <span id="main-count" class="count-badge"></span></button>
+                <button class="card-type-tab" onclick="showCardType('definitions')">Definitions <span id="def-count" class="count-badge"></span></button>
+                <button class="card-type-tab" onclick="showCardType('cloze')">Fill-in-Blank <span id="cloze-count" class="count-badge"></span></button>
+            </div>
+
+            <div id="flashcard-container" class="flashcard-container"></div>
+            <div id="definitions-container" class="flashcard-container hidden"></div>
+            <div id="cloze-container" class="flashcard-container hidden"></div>
+            <div id="cost-info" class="cost-info"></div>
+        </div>
+
+    </main>
+
+    <!-- Save Modal -->
+    <div id="save-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>💾 Save Deck</h2>
+            <div class="form-group">
+                <label for="deck-title">Deck Title</label>
+                <input type="text" id="deck-title" placeholder="e.g. Biology Ch. 5" maxlength="200">
+            </div>
+            <div class="form-group">
+                <label for="deck-description">Description (optional)</label>
+                <input type="text" id="deck-description" placeholder="Short description...">
+            </div>
+            <div class="modal-actions">
+                <button onclick="confirmSave()" class="btn-primary">Save Deck</button>
+                <button onclick="closeModal()" class="btn-outline-sm">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal()"></div>
+
+    <footer class="main-footer">
+        <p>FlashAI · Built with Flask & Claude AI · Study smarter, not harder</p>
+    </footer>
+
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}?v=7"></script>
+</body>
+</html>
