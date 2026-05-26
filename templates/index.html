@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlashAI – AI Flashcard Generator</title>
+    <title>LuminCards – AI Flashcard Generator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=7">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
     <header class="main-header">
         <div class="header-inner">
             <a href="/" class="logo">
-                <span class="logo-icon">🧠</span> FlashAI
+                <span class="logo-icon">🧠</span> LuminCards
             </a>
             <nav class="header-nav">
                 {% if current_user.is_authenticated %}
@@ -221,7 +221,7 @@
     <div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal()"></div>
 
     <footer class="main-footer">
-        <p>FlashAI · Built with Flask & Claude AI · Study smarter, not harder</p>
+        <p>LuminCards · Built with Flask & Claude AI · Study smarter, not harder</p>
     </footer>
 
 </div>
